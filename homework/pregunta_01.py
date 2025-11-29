@@ -71,3 +71,43 @@ def pregunta_01():
 
 
     """
+    import zipfile
+    import os
+    import pandas as pd
+    from pathlib import Path
+
+    zip_path = "files/input.zip"
+    extract_path = "files"
+
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_path)
+
+    def process_directory(base_path):
+        data = []
+        for sentiment in ['negative', 'positive', 'neutral']:
+            sentiment_path = os.path.join(base_path, sentiment)
+
+            if os.path.exists(sentiment_path):
+                for filename in os.listdir(sentiment_path):
+                    if filename.endswith('.txt'):
+                        file_path = os.path.join(sentiment_path, filename)
+
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            phrase = f.read().strip()
+
+
+                        data.append({
+                            'phrase': phrase,
+                            'target': sentiment
+                        })
+
+        return pd.DataFrame(data)
+
+    train_df = process_directory(os.path.join(extract_path, 'input', 'train'))
+    test_df = process_directory(os.path.join(extract_path, 'input', 'test'))
+
+    output_path = "files/output"
+    os.makedirs(output_path, exist_ok=True)
+
+    train_df.to_csv(os.path.join(output_path, 'train_dataset.csv'), index=False)
+    test_df.to_csv(os.path.join(output_path, 'test_dataset.csv'), index=False)
